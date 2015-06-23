@@ -14,6 +14,6 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="json-20141113" level="project" />
     <orderEntry type="library" name="net.sf.launch4j:launch4j:3.8.0" level="application" />
-    <orderEntry type="library" name="jacob" level="project" />
+    <orderEntry type="library" name="jacob" level="application" />
   </component>
 </module>
