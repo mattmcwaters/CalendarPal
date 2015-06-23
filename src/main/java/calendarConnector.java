@@ -50,10 +50,16 @@ public class calendarConnector {
                 findItem = Dispatch.call(restrictedItems, "GetNext").toDispatch();
 
                 numberOfMatchingItems++;
-                if(Dispatch.get(findItem, "Subject") == null){
-                    Continue = false;
-                    numberOfMatchingItems--;
+                try{
+                    if(Dispatch.get(findItem, "Subject") == null){
+                        Continue = false;
+                        numberOfMatchingItems--;
+                    }
                 }
+                catch(Exception e){
+                    Continue = false;
+                }
+
 
               System.out.print(numberOfMatchingItems + " ");
             }
