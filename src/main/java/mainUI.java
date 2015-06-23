@@ -61,8 +61,8 @@ public class mainUI extends JFrame {
                 calendarConnector cC = new calendarConnector();
                 cC.getAppts("appointment", startDate.getText(), endDate.getText());
                 System.out.println("Finished get appts");
-                //cC.getDistance(addField.getText());
-                //System.out.println(cC);
+                cC.getDistance(addField.getText());
+                System.out.println(cC);
 
             }
         });

@@ -44,15 +44,16 @@ public class calendarConnector {
         if (restrictedItems != null && restrictedItems.m_pDispatch > 0) {
             Dispatch findItem = Dispatch.call(restrictedItems, "GetFirst").toDispatch();
 
-            while (findItem != null && findItem.m_pDispatch > 0) {
+            while (findItem.getProgramId() != null && findItem.m_pDispatch > 0) {
                 numberOfMatchingItems++;
                 findItem = Dispatch.call(restrictedItems, "GetNext").toDispatch();
                 System.out.print(numberOfMatchingItems + " ");
             }
+            /* */
             if(numberOfMatchingItems != 0){
                 this.initSubLoca();
                 findItem = Dispatch.call(restrictedItems, "GetFirst").toDispatch();
-                while (findItem != null && findItem.m_pDispatch > 0) {
+                while (findItem.getProgramId() != null && findItem.m_pDispatch > 0) {
 
                     lastitemFound = findItem;
                     String subject = Dispatch.get(findItem, "Subject").toString();
@@ -66,11 +67,14 @@ public class calendarConnector {
                     i++;
                 }
             }
+            else{
+                System.out.println("Found no appointements containing the appropriate keyword");
+            }
 
 
 
-            /*
-             */
+
+
 
         }
 
@@ -134,12 +138,14 @@ public class calendarConnector {
 
     public String toString(){
         String result = "";
-        result += getTotalDist() + "\n";
-        for (int i = 0; i < this.subLoca.length; i++) {
+        if(numberOfMatchingItems != 0){
+            result += getTotalDist() + "\n";
+            for (int i = 0; i < this.subLoca.length; i++) {
                 int count = i+1;
                 result+= "\nEvent " + count + "\n   Subject: " + subLoca[i][0] +
                         "\n    Date: " +subLoca[i][3] + "\n      Location "
-                    + subLoca[i][1] + "\n       Distance one way: " + subLoca[i][2];
+                        + subLoca[i][1] + "\n       Distance one way: " + subLoca[i][2];
+            }
         }
 
         return result;
