@@ -70,6 +70,10 @@ public class mainUI extends JFrame {
                     cC.getDistance(addField.getText());
                     System.out.println(cC.printOut());
                 }
+                else if(cC.numberOfMatchingItems == 0){
+                    b3.setVisible(false);
+                    comfirm.setVisible(true);
+                }
 
             }
         });
