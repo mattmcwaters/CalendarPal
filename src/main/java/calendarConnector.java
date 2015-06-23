@@ -44,7 +44,7 @@ public class calendarConnector {
         if (restrictedItems != null && restrictedItems.m_pDispatch > 0) {
             Dispatch findItem = Dispatch.call(restrictedItems, "GetFirst").toDispatch();
 
-            while (findItem.getProgramId() != null && findItem.m_pDispatch > 0) {
+            while (findItem != null &&  findItem.m_pDispatch > 0) {
                 numberOfMatchingItems++;
                 findItem = Dispatch.call(restrictedItems, "GetNext").toDispatch();
                 System.out.print(numberOfMatchingItems + " ");
@@ -53,7 +53,7 @@ public class calendarConnector {
             if(numberOfMatchingItems != 0){
                 this.initSubLoca();
                 findItem = Dispatch.call(restrictedItems, "GetFirst").toDispatch();
-                while (findItem.getProgramId() != null && findItem.m_pDispatch > 0) {
+                while (findItem != null && findItem.m_pDispatch > 0) {
 
                     lastitemFound = findItem;
                     String subject = Dispatch.get(findItem, "Subject").toString();
@@ -122,7 +122,7 @@ public class calendarConnector {
         }
         catch(Exception e){
             System.out.println("Error in calculating distances\n  Please Try Again");
-
+            e.printStackTrace();
         }
 
 
