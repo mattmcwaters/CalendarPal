@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="module_calendarpal" default="compile.module.calendarpal">
+  <dirname property="module.calendarpal.basedir" file="${ant.file.module_calendarpal}"/>
+  
+  <property name="module.jdk.home.calendarpal" value="${project.jdk.home}"/>
+  <property name="module.jdk.bin.calendarpal" value="${project.jdk.bin}"/>
+  <property name="module.jdk.classpath.calendarpal" value="${project.jdk.classpath}"/>
+  
+  <property name="compiler.args.calendarpal" value="-encoding UTF-8 -source 1.6 ${compiler.args}"/>
+  
+  <property name="calendarpal.output.dir" value="${module.calendarpal.basedir}/target/classes"/>
+  <property name="calendarpal.testoutput.dir" value="${module.calendarpal.basedir}/target/test-classes"/>
+  
+  <path id="calendarpal.module.bootclasspath">
+    <!-- Paths to be included in compilation bootclasspath -->
+  </path>
+  
+  <path id="calendarpal.module.production.classpath">
+    <path refid="${module.jdk.classpath.calendarpal}"/>
+    <path refid="library.jacob.classpath"/>
+    <path refid="library.json-20141113.classpath"/>
+    <path refid="library.net.sf.launch4j:launch4j:3.8.0.classpath"/>
+  </path>
+  
+  <path id="calendarpal.runtime.production.module.classpath">
+    <pathelement location="${calendarpal.output.dir}"/>
+    <path refid="library.jacob.classpath"/>
+    <path refid="library.json-20141113.classpath"/>
+    <path refid="library.net.sf.launch4j:launch4j:3.8.0.classpath"/>
+  </path>
+  
+  <path id="calendarpal.module.classpath">
+    <path refid="${module.jdk.classpath.calendarpal}"/>
+    <pathelement location="${calendarpal.output.dir}"/>
+    <path refid="library.jacob.classpath"/>
+    <path refid="library.json-20141113.classpath"/>
+    <path refid="library.net.sf.launch4j:launch4j:3.8.0.classpath"/>
+  </path>
+  
+  <path id="calendarpal.runtime.module.classpath">
+    <pathelement location="${calendarpal.testoutput.dir}"/>
+    <pathelement location="${calendarpal.output.dir}"/>
+    <path refid="library.jacob.classpath"/>
+    <path refid="library.json-20141113.classpath"/>
+    <path refid="library.net.sf.launch4j:launch4j:3.8.0.classpath"/>
+  </path>
+  
+  
+  <patternset id="excluded.from.module.calendarpal">
+    <patternset refid="ignored.files"/>
+  </patternset>
+  
+  <patternset id="excluded.from.compilation.calendarpal">
+    <patternset refid="excluded.from.module.calendarpal"/>
+  </patternset>
+  
+  <path id="calendarpal.module.sourcepath">
+    <dirset dir="${module.calendarpal.basedir}">
+      <include name="src/main/java"/>
+      <include name="src/main/resources"/>
+      <include name="src/dependencies"/>
+    </dirset>
+  </path>
+  
+  <path id="calendarpal.module.test.sourcepath">
+    <dirset dir="${module.calendarpal.basedir}">
+      <include name="src/test/java"/>
+    </dirset>
+  </path>
+  
+  
+  <target name="compile.module.calendarpal" depends="compile.module.calendarpal.production,compile.module.calendarpal.tests" description="Compile module CalendarPal"/>
+  
+  <target name="compile.module.calendarpal.production" depends="register.custom.compilers" description="Compile module CalendarPal; production classes">
+    <mkdir dir="${calendarpal.output.dir}"/>
+    <javac2 destdir="${calendarpal.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.calendarpal}/javac">
+      <compilerarg line="${compiler.args.calendarpal}"/>
+      <bootclasspath refid="calendarpal.module.bootclasspath"/>
+      <classpath refid="calendarpal.module.production.classpath"/>
+      <src refid="calendarpal.module.sourcepath"/>
+      <patternset refid="excluded.from.compilation.calendarpal"/>
+    </javac2>
+    
+    <copy todir="${calendarpal.output.dir}">
+      <fileset dir="${module.calendarpal.basedir}/src/main/java">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+      <fileset dir="${module.calendarpal.basedir}/src/main/resources">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+      <fileset dir="${module.calendarpal.basedir}/src/dependencies">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+    </copy>
+  </target>
+  
+  <target name="compile.module.calendarpal.tests" depends="register.custom.compilers,compile.module.calendarpal.production" description="compile module CalendarPal; test classes" unless="skip.tests">
+    <mkdir dir="${calendarpal.testoutput.dir}"/>
+    <javac2 destdir="${calendarpal.testoutput.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.calendarpal}/javac">
+      <compilerarg line="${compiler.args.calendarpal}"/>
+      <bootclasspath refid="calendarpal.module.bootclasspath"/>
+      <classpath refid="calendarpal.module.classpath"/>
+      <src refid="calendarpal.module.test.sourcepath"/>
+      <patternset refid="excluded.from.compilation.calendarpal"/>
+    </javac2>
+    
+    <copy todir="${calendarpal.testoutput.dir}">
+      <fileset dir="${module.calendarpal.basedir}/src/test/java">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+    </copy>
+  </target>
+  
+  <target name="clean.module.calendarpal" description="cleanup module">
+    <delete dir="${calendarpal.output.dir}"/>
+    <delete dir="${calendarpal.testoutput.dir}"/>
+  </target>
+</project>
