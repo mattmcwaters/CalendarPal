@@ -43,28 +43,44 @@ public class calendarConnector {
         int i = 0;
         if (restrictedItems != null && restrictedItems.m_pDispatch > 0) {
             Dispatch findItem = Dispatch.call(restrictedItems, "GetFirst").toDispatch();
+            Dispatch firstItem = findItem;
+            boolean Continue = true;
+            while (Continue &&  findItem.m_pDispatch > 0) {
 
-            while (findItem != null &&  findItem.m_pDispatch > 0) {
-                numberOfMatchingItems++;
                 findItem = Dispatch.call(restrictedItems, "GetNext").toDispatch();
-                System.out.print(numberOfMatchingItems + " ");
+
+                numberOfMatchingItems++;
+                if(Dispatch.get(findItem, "Subject") == null){
+                    Continue = false;
+                    numberOfMatchingItems--;
+                }
+
+              System.out.print(numberOfMatchingItems + " ");
             }
             /* */
             if(numberOfMatchingItems != 0){
                 this.initSubLoca();
-                findItem = Dispatch.call(restrictedItems, "GetFirst").toDispatch();
+                findItem = firstItem;
                 while (findItem != null && findItem.m_pDispatch > 0) {
 
                     lastitemFound = findItem;
-                    String subject = Dispatch.get(findItem, "Subject").toString();
-                    String location = Dispatch.get(findItem, "Location").toString();
-                    String date = Dispatch.get(findItem, "Start").toString();
-                    findItem = Dispatch.call(restrictedItems, "GetNext").toDispatch();
+                    try{
 
-                    this.subLoca[i][0] = subject;
-                    this.subLoca[i][1] = location;
-                    this.subLoca[i][3] = date;
-                    i++;
+                        String subject = Dispatch.get(findItem, "Subject").toString();
+                        String location = Dispatch.get(findItem, "Location").toString();
+                        String date = Dispatch.get(findItem, "Start").toString();
+                        findItem = Dispatch.call(restrictedItems, "GetNext").toDispatch();
+
+
+                        this.subLoca[i][0] = subject;
+                        this.subLoca[i][1] = location;
+                        this.subLoca[i][3] = date;
+                        i++;
+                    }
+                    catch(Exception e){
+                        e.printStackTrace();
+                    }
+
                 }
             }
             else{
@@ -82,41 +98,45 @@ public class calendarConnector {
 
     public void  getDistance(String origin){
         try{
-            String originFixed = "";
-            String destFixed = "";
-            String dest;
-            for (int i = 0; i < this.subLoca.length; i++) {
-                dest = this.subLoca[i][1];
-                destFixed += dest.replaceAll("\\W", "+");
-                originFixed += origin.replaceAll("\\W", "+");
-                if(!(i==subLoca.length-1)){
+            if(numberOfMatchingItems != 0){
+                String originFixed = "";
+                String destFixed = "";
+                String dest;
+                for (int i = 0; i < this.subLoca.length; i++) {
+                    dest = this.subLoca[i][1];
+                    destFixed += dest.replaceAll("\\W", "+");
+                    originFixed += origin.replaceAll("\\W", "+");
+                    if(!(i==subLoca.length-1)){
 
-                    destFixed += "|";
-                    originFixed += "|";
+                        destFixed += "|";
+                        originFixed += "|";
+                    }
+
+                }
+                URL url = new URL("https://maps.googleapis.com/maps/api/distancematrix/json?origins="+originFixed+"&destinations="+destFixed);
+                //System.out.println(url);
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("GET");
+                String line, outputString = "";
+                BufferedReader reader = new BufferedReader(
+                        new InputStreamReader(conn.getInputStream()));
+                while ((line = reader.readLine()) != null) {
+                    outputString += line;
                 }
 
-            }
-            URL url = new URL("https://maps.googleapis.com/maps/api/distancematrix/json?origins="+originFixed+"&destinations="+destFixed);
-            //System.out.println(url);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("GET");
-            String line, outputString = "";
-            BufferedReader reader = new BufferedReader(
-                    new InputStreamReader(conn.getInputStream()));
-            while ((line = reader.readLine()) != null) {
-                outputString += line;
-            }
+                JSONObject distanceJS = new JSONObject(outputString);
+                JSONArray arr = distanceJS.getJSONArray("rows");
+                JSONObject distance = arr.getJSONObject(0);
+                JSONArray arr2 = distance.getJSONArray("elements");
 
-            JSONObject distanceJS = new JSONObject(outputString);
-            JSONArray arr = distanceJS.getJSONArray("rows");
-            JSONObject distance = arr.getJSONObject(0);
-            JSONArray arr2 = distance.getJSONArray("elements");
+                for (int i = 0; i < this.subLoca.length; i++) {
+                    JSONObject finalObj = arr2.getJSONObject(i).getJSONObject("distance");
+                    subLoca[i][2] = finalObj.getString("text");
+                }
 
-            for (int i = 0; i < this.subLoca.length; i++) {
-                JSONObject finalObj = arr2.getJSONObject(i).getJSONObject("distance");
-                subLoca[i][2] = finalObj.getString("text");
+
+
             }
-
 
 
         }
@@ -136,7 +156,7 @@ public class calendarConnector {
         this.subLoca = new String[numberOfMatchingItems][4];
     }
 
-    public String toString(){
+    public String printOut(){
         String result = "";
         if(numberOfMatchingItems != 0){
             result += getTotalDist() + "\n";

@@ -62,7 +62,7 @@ public class mainUI extends JFrame {
                 cC.getAppts("appointment", startDate.getText(), endDate.getText());
                 System.out.println("Finished get appts");
                 cC.getDistance(addField.getText());
-                System.out.println(cC);
+                System.out.println(cC.printOut());
 
             }
         });
