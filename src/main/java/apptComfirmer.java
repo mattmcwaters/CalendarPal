@@ -1,58 +1,55 @@
 import javax.swing.*;
 
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.awt.event.WindowEvent;
 import java.io.PrintStream;
 
 public class apptComfirmer extends JFrame {
-    protected JButton b4, b3;
+    JButton change = new JButton("Edit");
     JPanel layout = new JPanel();
-    JPanel buttons = new JPanel();
     JPanel info = new JPanel();
-    JPanel infoTwo = new JPanel();
-    JPanel infoThree = new JPanel();
 
-    JLabel startAdd = new JLabel("Home Address");
-    JTextField addField = new JTextField("119 Rockport Crescent");
-
-    JLabel startLabel = new JLabel("Start Date");
-    JLabel endLabel = new JLabel("End Date");
-
-    JTextField startDate = new JTextField("June 1 2015");
-    JTextField endDate = new JTextField("June 21 2015");
-
+    JLabel locaLabel = new JLabel("Enter new Location");
+    JTextField newLoca = new JTextField();
     JTextArea textArea = new JTextArea(50, 10);
 
 
-    public apptComfirmer() {
-        super("Appointment Comfirmer");
-        setSize(600, 800);
+    public apptComfirmer(final calendarConnector calendar, final int index) {
+        super("No Address");
+
+        textArea.setEditable(false);
+        //JPanel[] panelArray = new JPanel[cC.numberOfMatchingItems];
+
+        setSize(300, 300);
         setResizable(true);
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        //setDefaultCloseOperation(EXIT_ON_CLOSE);
         setVisible(true);
 
+        newLoca.setPreferredSize(new Dimension(80, 20));
         layout.setLayout(new BoxLayout(layout, BoxLayout.Y_AXIS));
 
-        b3 = new JButton("Calculate Distance");
-        b4 = new JButton("Clear Status info");
+        info.add(locaLabel);
+        info.add(newLoca);
 
-        infoThree.add(startAdd);
-        infoThree.add(addField);
-        info.add(startLabel);
-        info.add(startDate);
-        infoTwo.add(endLabel);
-        infoTwo.add(endDate);
 
-        buttons.add(b3);
-        buttons.add(b4);
 
-        layout.add(infoThree);
-        layout.add(info);
-        layout.add(infoTwo);
-        layout.add(buttons);
         layout.add(textArea);
+        layout.add(info);
+        layout.add(change);
         add(layout);
+        textArea.setText(calendar.printOne(index));
+        getContentPane().setBackground(Color.RED);
+
+
+        change.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                calendar.newLocation(index, newLoca.getText());
+                apptComfirmer.this.dispatchEvent(new WindowEvent(apptComfirmer.this, WindowEvent.WINDOW_CLOSING));
+            }
+        });
 
     }
 }

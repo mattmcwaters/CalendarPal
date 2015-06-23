@@ -1,12 +1,11 @@
 import javax.swing.*;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
+import java.awt.event.*;
 import java.io.PrintStream;
 
 public class mainUI extends JFrame {
-    protected JButton b4, b3;
+    protected JButton b4, b3, comfirm;
+    int closed = 0;
     JPanel layout = new JPanel();
     JPanel buttons = new JPanel();
     JPanel info = new JPanel();
@@ -24,9 +23,10 @@ public class mainUI extends JFrame {
 
     JTextArea textArea = new JTextArea(50, 10);
 
-
+    static calendarConnector cC;
 
     public mainUI(){
+
         super("Your Calendar Pal");
         setSize(600, 800);
         setResizable(true);
@@ -37,6 +37,7 @@ public class mainUI extends JFrame {
 
         b3 = new JButton("Calculate Distance");
         b4 = new JButton("Clear Status info");
+        comfirm = new JButton("Comfirm appointments");
 
         infoThree.add(startAdd);
         infoThree.add(addField);
@@ -45,8 +46,11 @@ public class mainUI extends JFrame {
         infoTwo.add(endLabel);
         infoTwo.add(endDate);
 
+
+        buttons.add(comfirm);
         buttons.add(b3);
         buttons.add(b4);
+        b3.setVisible(false);
 
         layout.add(infoThree);
         layout.add(info);
@@ -54,15 +58,18 @@ public class mainUI extends JFrame {
         layout.add(buttons);
         layout.add(textArea);
         add(layout);
+        textArea.setEditable(false);
 
         b3.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
+                if(!(closed == cC.missingLocations)) {
 
-                calendarConnector cC = new calendarConnector();
-                cC.getAppts("appointment", startDate.getText(), endDate.getText());
-                System.out.println("Finished get appts");
-                cC.getDistance(addField.getText());
-                System.out.println(cC.printOut());
+                    b3.setVisible(false);
+                    comfirm.setVisible(true);
+                    //System.out.println("Finished get appts");
+                    cC.getDistance(addField.getText());
+                    System.out.println(cC.printOut());
+                }
 
             }
         });
@@ -73,6 +80,35 @@ public class mainUI extends JFrame {
                 System.out.print("Status Information: \n ");
             }
         });
+
+        comfirm.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+
+                cC = new calendarConnector();
+                cC.getAppts("appointment", startDate.getText(), endDate.getText());
+
+                for (int i = 0; i < cC.numberOfMatchingItems; i++) {
+                    if(cC.subLoca[i][1].equals("")){
+                        apptComfirmer checker = new apptComfirmer(cC, i);
+                        checker.addWindowListener(new WindowAdapter() {
+
+                           @Override
+                           public void windowClosing(WindowEvent arg0) {
+                               closed++;
+
+
+                           }
+
+                       });
+                    }
+
+                }
+                b3.setVisible(true);
+                comfirm.setVisible(false);
+
+            }
+        });
+
     }
 
 

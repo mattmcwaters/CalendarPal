@@ -33,18 +33,19 @@ public class calendarConnector {
 
         Dispatch calItems = Dispatch.get(calendarFolder, "items").toDispatch();
         String customFilter = "@SQL=\"urn:schemas:calendar:dtstart\" > '" +  start + "' and  \"urn:schemas:calendar:dtend\" < '" +  end  + "' and \"urn:schemas:httpmail:subject\" ci_phrasematch '"+ subjectFilter + "'" ;
+        Dispatch.call(calItems, "Sort", "[Start]");
 
         Dispatch restrictedItems = Dispatch.call(calItems, "Restrict", new Variant(customFilter)).toDispatch(); //Works only with dates
 
-        Dispatch.call(calItems, "Sort", "[Start]");
         Dispatch.put(restrictedItems, "IncludeRecurrences", "False");
-
+        numberOfMatchingItems= Dispatch.call(restrictedItems, "Count").toInt();
 
         Dispatch lastitemFound = null;
         int i = 0;
         if (restrictedItems != null && restrictedItems.m_pDispatch > 0) {
             Dispatch findItem = Dispatch.call(restrictedItems, "GetFirst").toDispatch();
             Dispatch firstItem = findItem;
+            /*
             boolean Continue = true;
             while (Continue &&  findItem.m_pDispatch > 0) {
 
@@ -52,7 +53,7 @@ public class calendarConnector {
 
                 numberOfMatchingItems++;
                 try{
-                    if(Dispatch.get(findItem, "Subject") == null){
+                    if(Dispatch.get(findItem, "Start").toString() == null){
                         Continue = false;
                         numberOfMatchingItems--;
                     }
@@ -64,12 +65,12 @@ public class calendarConnector {
 
               System.out.print(numberOfMatchingItems + " ");
             }
-            /* */
+             */
             if(numberOfMatchingItems != 0){
                 this.initSubLoca();
                 findItem = firstItem;
 
-                while ((findItem != null && findItem.m_pDispatch > 0) | i != numberOfMatchingItems) {
+                while ((findItem != null && findItem.m_pDispatch > 0)) {
 
                     lastitemFound = findItem;
                     try{
@@ -87,7 +88,8 @@ public class calendarConnector {
 
                     }
                     catch(Exception e){
-                        e.printStackTrace();
+                        //e.printStackTrace();
+                        i++;
                     }
 
                 }
@@ -103,6 +105,10 @@ public class calendarConnector {
 
         }
 
+    }
+
+    public void newLocation(int index, String location){
+        subLoca[index][1] = location;
     }
 
     public void  getDistance(String origin){
@@ -146,8 +152,11 @@ public class calendarConnector {
                     JSONArray arr2 = distance.getJSONArray("elements");
 
                     for (int i = 0; i < this.subLoca.length; i++) {
-                        JSONObject finalObj = arr2.getJSONObject(i).getJSONObject("distance");
-                        subLoca[i][2] = finalObj.getString("text");
+                        if(!subLoca[i][1].equals("")){
+                            JSONObject finalObj = arr2.getJSONObject(i).getJSONObject("distance");
+                            subLoca[i][2] = finalObj.getString("text");
+                        }
+
                     }
                 }
             }
@@ -182,6 +191,19 @@ public class calendarConnector {
 
         return result;
     }
+
+    public String printOne(int i){
+        String result = "";
+        int count = i+1;
+        result+= "\nEvent " + count + "\n   Subject: " + subLoca[i][0] +
+                "\n    Date: " +subLoca[i][3] + "\n      Location "
+                        + subLoca[i][1] ;
+
+
+
+        return result;
+    }
+
 
     public String getTotalDist(){
         double total = 0;
