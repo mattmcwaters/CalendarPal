@@ -18,6 +18,7 @@ import org.json.*;
 public class calendarConnector {
 
     int numberOfMatchingItems = 0;
+    int missingLocations;
     String[][] subLoca;
 
     public calendarConnector(){
@@ -67,7 +68,8 @@ public class calendarConnector {
             if(numberOfMatchingItems != 0){
                 this.initSubLoca();
                 findItem = firstItem;
-                while (findItem != null && findItem.m_pDispatch > 0) {
+
+                while ((findItem != null && findItem.m_pDispatch > 0) | i != numberOfMatchingItems) {
 
                     lastitemFound = findItem;
                     try{
@@ -82,6 +84,7 @@ public class calendarConnector {
                         this.subLoca[i][1] = location;
                         this.subLoca[i][3] = date;
                         i++;
+
                     }
                     catch(Exception e){
                         e.printStackTrace();
@@ -110,13 +113,20 @@ public class calendarConnector {
                 String dest;
                 for (int i = 0; i < this.subLoca.length; i++) {
                     dest = this.subLoca[i][1];
-                    destFixed += dest.replaceAll("\\W", "+");
-                    originFixed += origin.replaceAll("\\W", "+");
-                    if(!(i==subLoca.length-1)){
+                    if(!dest.equals("")){
+                        destFixed += dest.replaceAll("\\W", "+");
+                        originFixed += origin.replaceAll("\\W", "+");
+                        if(!(i==subLoca.length-1)){
 
-                        destFixed += "|";
-                        originFixed += "|";
+                            destFixed += "|";
+                            originFixed += "|";
+                        }
+
                     }
+                    else{
+                        missingLocations += 1;
+                    }
+
 
                 }
                 URL url = new URL("https://maps.googleapis.com/maps/api/distancematrix/json?origins="+originFixed+"&destinations="+destFixed);
@@ -129,22 +139,18 @@ public class calendarConnector {
                 while ((line = reader.readLine()) != null) {
                     outputString += line;
                 }
+                if(numberOfMatchingItems != missingLocations){
+                    JSONObject distanceJS = new JSONObject(outputString);
+                    JSONArray arr = distanceJS.getJSONArray("rows");
+                    JSONObject distance = arr.getJSONObject(0);
+                    JSONArray arr2 = distance.getJSONArray("elements");
 
-                JSONObject distanceJS = new JSONObject(outputString);
-                JSONArray arr = distanceJS.getJSONArray("rows");
-                JSONObject distance = arr.getJSONObject(0);
-                JSONArray arr2 = distance.getJSONArray("elements");
-
-                for (int i = 0; i < this.subLoca.length; i++) {
-                    JSONObject finalObj = arr2.getJSONObject(i).getJSONObject("distance");
-                    subLoca[i][2] = finalObj.getString("text");
+                    for (int i = 0; i < this.subLoca.length; i++) {
+                        JSONObject finalObj = arr2.getJSONObject(i).getJSONObject("distance");
+                        subLoca[i][2] = finalObj.getString("text");
+                    }
                 }
-
-
-
             }
-
-
         }
         catch(Exception e){
             System.out.println("Error in calculating distances\n  Please Try Again");
@@ -179,23 +185,25 @@ public class calendarConnector {
 
     public String getTotalDist(){
         double total = 0;
-
-        String parse;
-        for (int i = 0; i < subLoca.length; i++) {
-            String[] split = subLoca[i][2].split("\\s+");
+        if(missingLocations != numberOfMatchingItems && numberOfMatchingItems != 0){
+            String parse;
+            for (int i = 0; i < subLoca.length; i++) {
+                String[] split = subLoca[i][2].split("\\s+");
 
                 parse = split[0].replaceAll(",", "");
 
-            //parse = "22.2";
-            if(split[1].equals("km")){
+                //parse = "22.2";
+                if(split[1].equals("km")){
 
-                total += (Double.valueOf(parse))*2;
-            }
-            else{
-                total += (Double.valueOf(parse)/1000)*2;
-            }
+                    total += (Double.valueOf(parse))*2;
+                }
+                else{
+                    total += (Double.valueOf(parse)/1000)*2;
+                }
 
+            }
         }
+
         return "\nTotal Distance Traveled is " + total + "km";
     }
 }
