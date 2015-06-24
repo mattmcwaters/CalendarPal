@@ -7,10 +7,13 @@ public class mainUI extends JFrame {
     protected JButton b4, b3, comfirm;
     int closed = 0;
     JPanel layout = new JPanel();
+    JPanel mode = new JPanel();
     JPanel buttons = new JPanel();
     JPanel info = new JPanel();
     JPanel infoTwo = new JPanel();
     JPanel infoThree = new JPanel();
+    JPanel keywordPanel = new JPanel();
+
 
     JLabel startAdd = new JLabel("Home Address");
     JTextField addField = new JTextField("119 Rockport Crescent");
@@ -18,26 +21,44 @@ public class mainUI extends JFrame {
     JLabel startLabel = new JLabel("Start Date");
     JLabel endLabel = new JLabel("End Date");
 
+    JLabel keywordLabel = new JLabel("Keyword");
+
     JTextField startDate = new JTextField("June 1 2015");
     JTextField endDate = new JTextField("June 21 2015");
-
+    JTextField keywordField = new JTextField("EG: 'Appointment'");
     JTextArea textArea = new JTextArea(50, 10);
+    JScrollPane sp = new JScrollPane(textArea);
 
+    JCheckBox ignoreEmpty = new JCheckBox("Ignore empty location");
+    JRadioButton keyword = new JRadioButton("Keyword mode");
+    JRadioButton standard = new JRadioButton("Standard mode");
+
+    int modeInput = 0;
     static calendarConnector cC;
 
-    public mainUI(){
+    public mainUI() {
 
         super("Your Calendar Pal");
         setSize(600, 800);
         setResizable(true);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setVisible(true);
-
+        sp.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
         layout.setLayout(new BoxLayout(layout, BoxLayout.Y_AXIS));
 
         b3 = new JButton("Calculate Distance");
         b4 = new JButton("Clear Status info");
         comfirm = new JButton("Comfirm appointments");
+
+        standard.setSelected(true);
+        ButtonGroup buttonGroup = new ButtonGroup();
+        buttonGroup.add(keyword);
+        buttonGroup.add(standard);
+
+
+        mode.add(keyword);
+        mode.add(standard);
+        mode.add(ignoreEmpty);
 
         infoThree.add(startAdd);
         infoThree.add(addField);
@@ -45,35 +66,40 @@ public class mainUI extends JFrame {
         info.add(startDate);
         infoTwo.add(endLabel);
         infoTwo.add(endDate);
-
+        keywordPanel.add(keywordLabel);
+        keywordPanel.add(keywordField);
 
         buttons.add(comfirm);
         buttons.add(b3);
         buttons.add(b4);
         b3.setVisible(false);
 
+        layout.add(mode);
+        layout.add(keywordPanel);
         layout.add(infoThree);
         layout.add(info);
         layout.add(infoTwo);
         layout.add(buttons);
-        layout.add(textArea);
+
+        layout.add(sp);
         add(layout);
         textArea.setEditable(false);
+        keywordPanel.setVisible(false);
 
         b3.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                if(!(closed == cC.missingLocations)) {
+                //if(!(closed == cC.missingLocations)) {
 
-                    b3.setVisible(false);
-                    comfirm.setVisible(true);
-                    //System.out.println("Finished get appts");
-                    cC.getDistance(addField.getText());
-                    System.out.println(cC.printOut());
-                }
-                else if(cC.numberOfMatchingItems == 0){
-                    b3.setVisible(false);
-                    comfirm.setVisible(true);
-                }
+                b3.setVisible(false);
+                comfirm.setVisible(true);
+                //System.out.println("Finished get appts");
+                cC.getDistance(addField.getText());
+                System.out.println(cC.printOut());
+                //}
+                //else if(cC.numberOfMatchingItems == 0){
+                //    b3.setVisible(false);
+                //    comfirm.setVisible(true);
+                //}
 
             }
         });
@@ -88,31 +114,42 @@ public class mainUI extends JFrame {
         comfirm.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
 
-                cC = new calendarConnector();
-                cC.getAppts("appointment", startDate.getText(), endDate.getText());
+                cC = new calendarConnector(modeInput);
+                cC.getAppts(keywordField.getText(), startDate.getText(), endDate.getText());
+                cC.checkLocations();
+                if(!ignoreEmpty.isSelected()){
+                    for (int i = 0; i < cC.numberOfMatchingItems; i++) {
+                        if (cC.subLoca[i][4].equals("No address")) {
+                                apptComfirmer checker = new apptComfirmer(cC, i);
+                                checker.addWindowListener(new WindowAdapter() {
+                                    @Override
+                                    public void windowClosing(WindowEvent arg0) {
+                                        closed++;
+                                    }
+                                });
 
-                for (int i = 0; i < cC.numberOfMatchingItems; i++) {
-                    if(cC.subLoca[i][1].equals("")){
-                        apptComfirmer checker = new apptComfirmer(cC, i);
-                        checker.addWindowListener(new WindowAdapter() {
 
-                           @Override
-                           public void windowClosing(WindowEvent arg0) {
-                               closed++;
-
-
-                           }
-
-                       });
+                        }
                     }
-
+                    cC.emptyErrors();
                 }
                 b3.setVisible(true);
                 comfirm.setVisible(false);
-
+            }
+        });
+        standard.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                keywordPanel.setVisible(false);
+                modeInput = 0;
             }
         });
 
+        keyword.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                keywordPanel.setVisible(true);
+                modeInput = 1;
+            }
+        });
     }
 
 

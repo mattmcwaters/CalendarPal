@@ -9,8 +9,10 @@ import java.io.PrintStream;
 
 public class apptComfirmer extends JFrame {
     JButton change = new JButton("Edit");
+    JButton cancel = new JButton("Remove event");
     JPanel layout = new JPanel();
     JPanel info = new JPanel();
+    JPanel buttons = new JPanel();
 
     JLabel locaLabel = new JLabel("Enter new Location");
     JTextField newLoca = new JTextField();
@@ -34,19 +36,32 @@ public class apptComfirmer extends JFrame {
         info.add(locaLabel);
         info.add(newLoca);
 
-
+        buttons.add(change);
+        buttons.add(cancel);
 
         layout.add(textArea);
         layout.add(info);
-        layout.add(change);
+        layout.add(buttons);
+
+
+        change.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "DoClick");
         add(layout);
         textArea.setText(calendar.printOne(index));
-        getContentPane().setBackground(Color.RED);
+
+
+
 
 
         change.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 calendar.newLocation(index, newLoca.getText());
+                apptComfirmer.this.dispatchEvent(new WindowEvent(apptComfirmer.this, WindowEvent.WINDOW_CLOSING));
+            }
+        });
+
+        cancel.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                calendar.removeEvent(index);
                 apptComfirmer.this.dispatchEvent(new WindowEvent(apptComfirmer.this, WindowEvent.WINDOW_CLOSING));
             }
         });
