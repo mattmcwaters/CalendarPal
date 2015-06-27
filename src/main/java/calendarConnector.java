@@ -6,6 +6,7 @@ import com.jacob.com.LibraryLoader;
 import com.jacob.com.Variant;
 
 import java.io.*;
+import java.math.BigDecimal;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Date;
@@ -21,6 +22,7 @@ public class calendarConnector {
     int missingLocations;
     String[][] subLoca;
     int mode;
+    boolean abort = false;
 
     public calendarConnector(int mode){
         this.mode = mode;
@@ -56,27 +58,7 @@ public class calendarConnector {
         if (restrictedItems != null && restrictedItems.m_pDispatch > 0) {
             Dispatch findItem = Dispatch.call(restrictedItems, "GetFirst").toDispatch();
             Dispatch firstItem = findItem;
-            /*
-            boolean Continue = true;
-            while (Continue &&  findItem.m_pDispatch > 0) {
 
-                findItem = Dispatch.call(restrictedItems, "GetNext").toDispatch();
-
-                numberOfMatchingItems++;
-                try{
-                    if(Dispatch.get(findItem, "Start").toString() == null){
-                        Continue = false;
-                        numberOfMatchingItems--;
-                    }
-                }
-                catch(Exception e){
-                    Continue = false;
-                }
-
-
-              System.out.print(numberOfMatchingItems + " ");
-            }
-             */
             if(numberOfMatchingItems != 0){
                 this.initSubLoca();
                 findItem = firstItem;
@@ -146,7 +128,10 @@ public class calendarConnector {
                         }
                     }
                 }
-                URL url = new URL("https://maps.googleapis.com/maps/api/distancematrix/json?origins="+originFixed+"&destinations="+destFixed);
+                URL url = new URL("https://maps.googleapis.com/maps/api/distancematrix/json?origins="+originFixed+"&destinations="+destFixed+
+                        "&key="+"AIzaSyCtqVB2pAwNAlsnXpasLnNik4VnOKXHRE0");
+
+
                 HttpURLConnection conn = (HttpURLConnection) url.openConnection();
                 conn.setRequestMethod("GET");
                 String line, outputString = "";
@@ -158,16 +143,28 @@ public class calendarConnector {
                 if(numberOfMatchingItems != missingLocations){
                     JSONObject distanceJS = new JSONObject(outputString);
                     JSONArray arr = distanceJS.getJSONArray("rows");
+                    if(distanceJS.get("error_message").toString().startsWith("You have exceeded")){
+                        System.out.println("\nQuota exceeded for goolge distance matrix for today, using google directions API");
+                        //abort = true;
+                        googleDirections gDirect = new googleDirections(this, origin);
+                        return;
+                    }
                     JSONObject distance = arr.getJSONObject(0);
                     JSONArray arr2 = distance.getJSONArray("elements");
+
                     int j=0;
                         for (int i = 0; i < this.subLoca.length; i++) {
-
-                            if(eventIsGood(i)){
-                                JSONObject finalObj = arr2.getJSONObject(j).getJSONObject("distance");
-                                subLoca[i][2] = finalObj.getString("text");
-                                j++;
+                            try{
+                                if(eventIsGood(i)){
+                                    JSONObject finalObj = arr2.getJSONObject(j).getJSONObject("distance");
+                                    subLoca[i][2] = finalObj.getString("text");
+                                    j++;
+                                }
                             }
+                            catch(Exception e){
+                                subLoca[i][4] = "Google maps problem";
+                            }
+
                         }
                     }
                  }
@@ -180,6 +177,17 @@ public class calendarConnector {
 
     }
 
+    public boolean allGood(){
+        int count = 0;
+        for (int i = 0; i < numberOfMatchingItems; i++) {
+            if(eventIsGood(i)){
+                count ++;
+            }
+
+        }
+        return count == numberOfMatchingItems;
+    }
+
     public void checkLocations(){
         for (int i = 0; i < numberOfMatchingItems; i++) {
             if(subLoca[i][1].equals("")){
@@ -188,10 +196,31 @@ public class calendarConnector {
         }
     }
 
+    public void emptyError(int index){
+            subLoca[index][4] = "";
+    }
+
     public void emptyErrors(){
         for (int i = 0; i < numberOfMatchingItems; i++) {
-            subLoca[i][4] = "";
+            try{
+                if(!subLoca[i][1].equals("")){
+                    subLoca[i][4] = "";
+                }
+            }
+            catch(Exception e){
+                subLoca[i][4] = "";
+            }
+
         }
+    }
+
+    public int hasError(String error){
+        for (int i = 0; i < numberOfMatchingItems; i++) {
+            if(subLoca[i][4].equals(error)){
+               return i+1;
+            }
+        }
+        return 0;
     }
 
     public void initSubLoca() {
@@ -217,14 +246,12 @@ public class calendarConnector {
 
     public String getTotalDist(){
         double total = 0;
-        if(missingLocations != numberOfMatchingItems && numberOfMatchingItems != 0){
+        if(!abort && missingLocations != numberOfMatchingItems && numberOfMatchingItems != 0){
             String parse;
             for (int i = 0; i < numberOfMatchingItems; i++) {
                 if(eventIsGood(i)){
                     String[] split = subLoca[i][2].split("\\s+");
-
                     parse = split[0].replaceAll(",", "");
-
                     //parse = "22.2";
                     if(split[1].equals("km")){
 
@@ -236,13 +263,15 @@ public class calendarConnector {
                 }
             }
         }
-        String result =(String.valueOf(total));
+        float rounded = (float) total;
+
+        String result =(String.valueOf(round(rounded, 2)));
         return "\nTotal Distance Traveled is " + result + "km";
     }
 
     public String printOut(){
         String result = "";
-        if(numberOfMatchingItems != 0){
+        if(!abort && numberOfMatchingItems != 0){
             result += getTotalDist() + "\n";
             for (int i = 0; i < this.subLoca.length; i++) {
                 if(eventIsGood(i)){
@@ -253,9 +282,15 @@ public class calendarConnector {
                 }
 
             }
+            result += "\n --- \n";
         }
 
         return result;
     }
 
+    public static float round(float d, int decimalPlace) {
+        BigDecimal bd = new BigDecimal(Float.toString(d));
+        bd = bd.setScale(decimalPlace, BigDecimal.ROUND_HALF_UP);
+        return bd.floatValue();
+    }
 }

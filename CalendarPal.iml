@@ -15,5 +15,14 @@
     <orderEntry type="library" name="json-20141113" level="project" />
     <orderEntry type="library" name="net.sf.launch4j:launch4j:3.8.0" level="application" />
     <orderEntry type="library" name="jacob" level="application" />
+    <orderEntry type="library" name="poi-3.12-20150511" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.poi:poi-ooxml:3.8-beta4" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.poi:poi:3.8-beta4" level="project" />
+    <orderEntry type="library" name="Maven: commons-codec:commons-codec:1.5" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.poi:poi-ooxml-schemas:3.8-beta4" level="project" />
+    <orderEntry type="library" name="Maven: org.apache.xmlbeans:xmlbeans:2.3.0" level="project" />
+    <orderEntry type="library" name="Maven: stax:stax-api:1.0.1" level="project" />
+    <orderEntry type="library" name="Maven: dom4j:dom4j:1.6.1" level="project" />
+    <orderEntry type="library" name="Maven: xml-apis:xml-apis:1.0.b2" level="project" />
   </component>
 </module>
